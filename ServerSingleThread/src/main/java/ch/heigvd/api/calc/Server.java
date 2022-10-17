@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 
 /**
  * Calculator server implementation - single threaded
+ *
+ * this is not the dumb comment just to open the PR you are looking for
  */
 public class Server {
 
