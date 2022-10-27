@@ -1,8 +1,8 @@
 # Protocol specs
 
 ## Protocol objectives: what does the protocol do?
-Permettre à un client de recevoir le résultat de l'application d'une opération mathématique sur 2 variables 
 
+Permettre à un client de recevoir le résultat d'une opération mathématique effectuée sur 2 valeurs numériques.
 
 ## Overall behavior:
 
@@ -10,6 +10,10 @@ Permettre à un client de recevoir le résultat de l'application d'une opératio
 TCP pour ouvrir une seule fois la connection et permettre d'effectuer plusieurs calculs
 
 ### How does the client find the server (addresses and ports)?
+
+Le serveur et le client tournent sur la même machine l'adresse sera donc localhost.
+
+On peut choisir un port parmis les ports éphemères (49152 - 65535)
 
 ### Who speaks first?
 le client qui souhaite effectuer un calcul
@@ -20,25 +24,46 @@ le client à la réception du résultat
 ## Messages:
 ### What is the syntax of the messages?
 
-*client*:
-> what happens when we apply [operation] to [A] and [B]
+Chaque message contient toujours 2 éléments séparés par des \n et se terminant par un double \n\n :
 
-*server*:
-> the result of [operation] applied to [A] and [B] is : [result]
+> 1 : Opération
+
+Côté client :
+
+- COMPUTE ADD
+- COMPUTE MULT
+- COMPUTE DIV
+- COMPUTE SUB
+- COMPUTE MODULO
+
+Côté serveur :
+- RESULT
+- ERROR
+
+Partagé :
+
+- HELLO
+- END
+
+> 2 : Contenu
+
+- vide
+- valeurs numériques par des \n
 
 ### What is the sequence of messages exchanged by the client and the server? (flow)
-1. hello client
-2. hello serveur
-3. question client
-4. réponse serveur
-5. bye bye client
-6. bye bye serveur
+1. client : HELLO \n\n
+2. serveur : HELLO \n\n
+3. client : COMPUTE ADD \n 2 \n 3 \n\n
+4. serveur : RESULT 5 \n\n
+5. client : END \n\n
+6. serveur : END \n\n
 
 ### What happens when a message is received from the other party? (semantics)
 
 ## Specific elements (if useful)
 
 ## Supported operations
+
 - addition: +
 - soustraction: -
 - division: /
@@ -46,17 +71,20 @@ le client à la réception du résultat
 - modulo: %
 
 ## Error handling
-- Si le client essaie de casser la calculatrice (ex: division par zéro)
-le serveur prévient ces erreurs et lui répond en l'insultant copieusement il l'avait vu venir:
 
-*serveur*:
-> the result of [operation] applied to [A] and [B] could not be made, did you really think you could fool me ?
-> I was there when it was written.
+cas possibles :
 
-- Si des execeptions sont levées une réponse spécifique est envoyée du type:
+- opérations impossibles (divisions par zéro par ex.)
+- erreur interne côté serveur pendant le calcul
+- erreur pendant la communication
 
-*serveur*:
-> the result of [operation] applied to [A] and [B] could not be found
+le serveur renvoie dans le contenu une valeur numérique indiquant un code d'erreur
+
+> 0 : internal error
+
+> 1 : communication error
+
+> 2 : operation forbidden
 
 ## Extensibility
 
@@ -65,20 +93,37 @@ le serveur prévient ces erreurs et lui répond en l'insultant copieusement il l
 
 ## Examples: examples of some typical dialogs.
 
-*client*:
-> Hello calculator
+> cas ok
 
-*server*:
-> Hello random client
+1. client : HELLO \n\n
+2. serveur : HELLO \n\n
+3. client : COMPUTE ADD \n 2 \n 3 \n\n
+4. serveur : RESULT 5 \n\n
+5. client : END \n\n
+6. serveur : END \n\n
 
-*client*:
-> what happens when we apply [operation] to [A] and [B]
+> cas not ok
 
-*server*:
-> the result of [operation] applied to [A] and [B] is : [result]
+1. client : HELLO \n\n
+2. serveur : HELLO \n\n
+3. client : COMPUTE DIV \n 2 \n 0 \n\n
+4. serveur : ERROR 2 \n\n
+5. client : END \n\n
+6. serveur : END \n\n
 
-*client*:
-> 'kay bye calculator
+1. client : HELLO \n\n
+2. serveur : HELLO \n\n
+3. client : COMPUTE ADD \n 2 \n 3 \n\n
+4. serveur : RESULT 5 \n\n
+3. client : COMPUTE SUB \n 2 \n 3 \n\n
+4. serveur : RESULT -1 \n\n
+5. client : END \n\n
+6. serveur : END \n\n
 
-*server*:
-> bye random client
+
+## questions :
+
+- le serveur ne devrait-il pas fermer lui même la connection ?
+    - évite des oublis user + peut fermer direct si erreur
+
+- ajouter un champ additionnel pour les messages d'erreurs ?
