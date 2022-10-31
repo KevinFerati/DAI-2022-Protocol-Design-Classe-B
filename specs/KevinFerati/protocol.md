@@ -19,7 +19,7 @@ Ce sera le client qui devra initialiser la connexion avec le serveur.
 Le serveur et client seront exécutés depuis le même host. L'adresse sera donc "localhost". Quant au port, il sera fixe et donc est prévisibile et ne nécessitera pas d'être trouvé.
 
 #### Fermeture de la connexion
-Le serveur, après avoir transmis le résultat du traitement, fermera la connexion après chaque traitement.
+Le client devra envoyer les caractères STP pour fermer la connexion.
 
 ### Spécifications détaillées
 Les opérations possibles sont uniquement binaires. Il n'y a pas de notion de paranthèses. Chaque opération est atomique.
@@ -40,45 +40,37 @@ Sans signe, les valeurs seront positives par défaut. Les opérandes négatives 
 
 #### Messages
 
-Chaque ligne sera séparée par le caractère '\n'
+Chaque ligne sera séparée par le caractère ';'
 
 ##### Demande de calcul : Client -> serveur
 Depuis le client, les messages doivent être au format suivant : 
 
 ```
-[Opérande 1]
-[Opérateur]
-[Opérande 2]
+[Opérande 1];[Opérateur];[Opérande 2]
 ```
 Par exemple : 
 
 ```
--43.32
-ADD
-32
+-43.32;ADD;32
 ```
-Qui se traduira, en ascii : `-43.32\nADD\n32`
 
 #### Réponses : Serveur -> client
 ##### Calcul accepté
 Dans le cas où le calcul a été accepté, le format du résultat sera le suivant : 
 ```
-OK
-[Résultat]
+OK;[Résultat]
 ```
 
 En prenant l'exemple du dessus :
 ```
-OK
--11.32
+OK;-11.32
 ```
 
 ##### Erreur
 
 En cas d'erreur, le format est le suivant : 
 ```
-ERR
-[Code d'erreur]
+ERR;[Code d'erreur]
 ```
 
 Les codes d'erreur possibles sont les suivants : 
@@ -86,5 +78,5 @@ Les codes d'erreur possibles sont les suivants :
 |---|---|
 | 1  | Opérande non acceptée  |
 | 2  | Erreur inconnue  |
-
+| 3  | Opérateur inconnu|
 
