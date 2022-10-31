@@ -79,4 +79,4 @@ Les codes d'erreur possibles sont les suivants :
 | 1  | Opérande non acceptée  |
 | 2  | Erreur inconnue  |
 | 3  | Opérateur inconnu|
-
+| 4  | Division par zéro
