@@ -47,25 +47,46 @@ public class ServerWorker implements Runnable {
          *     - Send to result to the client
          */
 
-        while (!client.isClosed()) {
-            try {
-                String s = reader.readLine();
-                writer.write(s);
-                writer.flush();
-            } catch (Exception e) {
-                LOG.log(Level.SEVERE, "Error in the server while parsing the client messages : " + e.getMessage());
-                break;
+        try {
+
+            while (!client.isClosed()) {
+                String message = reader.readLine();
+                if (message.equals("BYE")) {
+                    send("BYE BYE");
+                    client.close();
+                }
+
+                send(message);
             }
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, e.getMessage());
+        } finally {
+            closeAll();
         }
-        closeAll();
     }
 
     private void closeAll() {
         try {
-            reader.close();
             writer.close();
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Error while closing the writer : " +  e.getMessage());
+        }
+
+        try {
+            reader.close();
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Error while closing the reader : " +  e.getMessage());
+        }
+
+        try {
             client.close();
         } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Error while closing the client : " +  e.getMessage());
         }
+    }
+
+    private void send(String s) throws IOException {
+        writer.write("BYE BYE");
+        writer.flush();
     }
 }

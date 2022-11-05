@@ -1,6 +1,6 @@
 package common;
 public enum Operator {
-    ADD("ADD"), SUB("SUB"), DIV("DIV"), MUL("MUL");
+    ADD("ADD"), SUB("SUB"), DIV("DIV"), MUL("MUL"), STP("STP");
 
     Operator(String op) {
         this.op = op;
