@@ -80,3 +80,4 @@ Les codes d'erreur possibles sont les suivants :
 | 2  | Erreur inconnue  |
 | 3  | Opérateur inconnu|
 | 4  | Division par zéro
+| 5  | Message malformé (ne correspond pas aux spécifications)
