@@ -1,8 +1,14 @@
 package ch.heigvd.api.calc;
 
+import common.Constants;
+import common.Errors;
+import common.Operator;
+import common.Results;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,30 +42,72 @@ public class ServerWorker implements Runnable {
      */
     @Override
     public void run() {
-
-        /* TODO: implement the handling of a client connection according to the specification.
-         *   The server has to do the following:
-         *   - initialize the dialog according to the specification (for example send the list
-         *     of possible commands)
-         *   - In a loop:
-         *     - Read a message from the input stream (using BufferedReader.readLine)
-         *     - Handle the message
-         *     - Send to result to the client
-         */
-
         try {
 
             while (!client.isClosed()) {
                 String message = reader.readLine();
-                if (message.equals("BYE")) {
-                    send("BYE BYE");
+                LOG.info("Received message : " + message);
+                if (message.equals(Operator.STP.getOp())) {
                     client.close();
+                    break;
+                }
+                String[] parts = message.split(";");
+
+                // Check the errors
+                if (parts.length != 3) {
+                    sendError(Errors.MESSAGE_MALFORMED);
+                    continue;
+                }
+                String firstOperand = parts[0], operator = parts[1], secondOperand = parts[2];
+
+                // Check if the operator is valid
+                if (Operator.STP.equals(operator)
+                        || Arrays.stream(Operator.values()).noneMatch(availableOp -> availableOp.equals(operator))) {
+                    sendError(Errors.UNKNOWN_OPERATOR);
+                    continue;
                 }
 
-                send(message);
+                // Check if the operands are valid
+                double firstOperandDbl, secondOperandDouble;
+                try {
+                    firstOperandDbl = Double.parseDouble(firstOperand);
+                    secondOperandDouble = Double.parseDouble(secondOperand);
+                } catch (NumberFormatException e) {
+                    sendError(Errors.OPERAND_NOT_ACCEPTED);
+                    continue;
+                }
+                // Check divide by zero
+                if (secondOperandDouble == 0 && Operator.DIV.equals(operator)) {
+                    sendError(Errors.DIVIDE_BY_ZERO);
+                    continue;
+                }
+
+                // From here, everything is fine
+
+                if (Operator.SUB.equals(operator)) {
+                    sendResult(firstOperandDbl - secondOperandDouble);
+                    continue;
+                }
+
+                if (Operator.DIV.equals(operator)) {
+                    sendResult(firstOperandDbl / secondOperandDouble);
+                    continue;
+                }
+
+                if (Operator.ADD.equals(operator)) {
+                    sendResult(firstOperandDbl + secondOperandDouble);
+                    continue;
+                }
+
+                sendResult(firstOperandDbl * secondOperandDouble);
             }
         } catch (Exception e) {
             LOG.log(Level.SEVERE, e.getMessage());
+            try {
+                sendError(Errors.UNKNOWN_ERROR);
+            } catch (Exception inner) {
+                LOG.log(Level.SEVERE, "Could not send the error : " + inner.getMessage());
+            }
         } finally {
             closeAll();
         }
@@ -86,7 +134,14 @@ public class ServerWorker implements Runnable {
     }
 
     private void send(String s) throws IOException {
-        writer.write("BYE BYE");
+        writer.write(s + "\n");
         writer.flush();
+    }
+
+    private void sendError(int err) throws IOException {
+        send(Results.ER.getResult() + Constants.SEPARATOR + err);
+    }
+    private void sendResult(double res) throws IOException {
+        send(Results.OK.getResult() + Constants.SEPARATOR + res);
     }
 }

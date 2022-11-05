@@ -12,4 +12,9 @@ public enum Operator {
     public String toString() {
         return getOp();
     }
+    
+    public boolean equals(String other) {
+        if (other == null) return false;
+        return other.equals(toString());
+    }
 }
