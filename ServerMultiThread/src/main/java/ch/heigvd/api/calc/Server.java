@@ -1,5 +1,8 @@
 package ch.heigvd.api.calc;
 
+import common.Constants;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -33,6 +36,18 @@ public class Server {
          *  For a new client connection, the actual work is done in a new thread
          *  by a new ServerWorker.
          */
+        LOG.log(Level.INFO, "Listening to " + Constants.PORT);
+        try (ServerSocket serverSocket = new ServerSocket(Constants.PORT)) {
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                LOG.log(Level.INFO, "Client found");
+                ServerWorker worker = new ServerWorker(clientSocket);
+                Thread t = new Thread(worker);
+                t.start();
 
+            }
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE,  e.getMessage());
+        }
     }
 }

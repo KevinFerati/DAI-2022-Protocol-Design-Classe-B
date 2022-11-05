@@ -3,8 +3,10 @@ package ch.heigvd.api.calc;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Calculator worker implementation
@@ -12,21 +14,21 @@ import java.util.logging.Logger;
 public class ServerWorker implements Runnable {
 
     private final static Logger LOG = Logger.getLogger(ServerWorker.class.getName());
+    private BufferedReader reader = null;
+    private BufferedWriter writer = null;
+    private Socket client = null;
 
     /**
      * Instantiation of a new worker mapped to a socket
      *
      * @param clientSocket connected to worker
      */
-    public ServerWorker(Socket clientSocket) {
+    public ServerWorker(Socket clientSocket) throws IOException {
         // Log output on a single line
         System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%6$s%n");
-
-        /* TODO: prepare everything for the ServerWorker to run when the
-         *   server calls the ServerWorker.run method.
-         *   Don't call the ServerWorker.run method here. It has to be called from the Server.
-         */
-
+        client = clientSocket;
+        reader = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
+        writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8));
     }
 
     /**
@@ -45,5 +47,25 @@ public class ServerWorker implements Runnable {
          *     - Send to result to the client
          */
 
+        while (!client.isClosed()) {
+            try {
+                String s = reader.readLine();
+                writer.write(s);
+                writer.flush();
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "Error in the server while parsing the client messages : " + e.getMessage());
+                break;
+            }
+        }
+        closeAll();
+    }
+
+    private void closeAll() {
+        try {
+            reader.close();
+            writer.close();
+            client.close();
+        } catch (IOException e) {
+        }
     }
 }
