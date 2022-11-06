@@ -50,6 +50,10 @@ public class Client {
             do {
                 // get operation from user and send it
                 operation = getUserCommand(stdin);
+                if (operation.equals(Operator.STP.toString())) {
+                    closeAll();
+                    break;
+                }
                 System.out.printf("you sent : %s \n", operation);
                 writer.write(operation);
                 writer.flush();
@@ -117,7 +121,7 @@ public class Client {
         System.out.print("%%");
         elements = stdin.readLine().split(" ");
         if(elements.length == 1 && elements[0].equals(Operator.STP.toString())) {
-            return elements[0] + "\n";
+            return elements[0];
         }
         if(elements.length < 3) {
             throw new RuntimeException("arguments mising");

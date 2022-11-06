@@ -46,8 +46,9 @@ public class ServerWorker implements Runnable {
 
             while (!client.isClosed()) {
                 String message = reader.readLine();
-                LOG.info("Received message : " + message);
-                if (message.equals(Operator.STP.getOp())) {
+                LOG.info("Received message : " + message + " of size " + message.length());
+                if (message.trim().equals(Operator.STP.getOp())) {
+                    LOG.info("Closing connection ...");
                     client.close();
                     break;
                 }
@@ -103,11 +104,6 @@ public class ServerWorker implements Runnable {
             }
         } catch (Exception e) {
             LOG.log(Level.SEVERE, e.getMessage());
-            try {
-                sendError(Errors.UNKNOWN_ERROR);
-            } catch (Exception inner) {
-                LOG.log(Level.SEVERE, "Could not send the error : " + inner.getMessage());
-            }
         } finally {
             closeAll();
         }
@@ -127,7 +123,8 @@ public class ServerWorker implements Runnable {
         }
 
         try {
-            client.close();
+            if (!client.isClosed())
+                client.close();
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Error while closing the client : " +  e.getMessage());
         }
