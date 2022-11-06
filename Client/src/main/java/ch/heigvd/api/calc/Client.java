@@ -39,20 +39,20 @@ public class Client {
          */
         try {
             // connect to the server
-            clientSocket = new Socket("localhost", Constants.PORT);
+            clientSocket = new Socket("127.0.0.1", Constants.PORT);
             reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
             writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8));
 
             // explain available operations
             initUserInput();
-            String operation;
+            String operation = "";
 
             do {
                 // get operation from user and send it
                 operation = getUserCommand(stdin);
                 System.out.printf("you sent : %s \n", operation);
                 writer.write(operation);
-
+                writer.flush();
                 // receive server response and print it
                 String response = reader.readLine();
                 System.out.printf("server responded with : %s \n", response);
@@ -117,7 +117,7 @@ public class Client {
         System.out.print("%%");
         elements = stdin.readLine().split(" ");
         if(elements.length == 1 && elements[0].equals(Operator.STP.toString())) {
-            return elements[0];
+            return elements[0] + "\n";
         }
         if(elements.length < 3) {
             throw new RuntimeException("arguments mising");
@@ -139,6 +139,6 @@ public class Client {
         } catch(NumberFormatException e){
             throw new RuntimeException("wrong type of arguments");
         }
-        return String.format("%s;%s;%s", num1, op, num2);
+        return String.format("%s;%s;%s\n", num1, op, num2);
     }
 }
